@@ -174,7 +174,7 @@ class FakeJPEG:
                 # adding an 0x00 after them.
                 # scandata = scandata.replace(b"\xff", b"\xff\x00")
 
-                # Add this chunk t our collection.
+                # Add this chunk to our collection.
                 chunks.append(scandata)
 
         # Finally, join all the genrated chunks and return the result.
