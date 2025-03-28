@@ -163,10 +163,18 @@ class FakeJPEG:
                 # the length that the template JPEG contained in this chunk.
                 scandata = rng.randbytes(rng.randint(int(length), int(1.1*length)))
 
-                # This trick masks out alternate bits in scandata fairly quickly -
+                # Totally random data gives rise to frequent bad Huffman
+                # codes. While we *could* generate perfect data by examining
+                # the DHT data (or constructing it really carefully), we're
+                # more interested in speed than correctness. Long runs of
+                # 1's in the random bit stream increase the likelihood of
+                # generating invalid Huffman data. So we mask out a few bits
+                # from each byte. A mask of 0x6d seems to work fairly well.
+                #
+                # The trick below masks bits from scandata fairly quickly -
                 # much more quickly than the naiive list comprehension would.
                 # Idea from # https://stackoverflow.com/questions/46540337/
-                scandata = (int.from_bytes(scandata, byteorder="little", signed=False) & int("0x" + ("55" * len(scandata)), 16)).to_bytes(len(scandata), "little")
+                scandata = (int.from_bytes(scandata, byteorder="little", signed=False) & int("0x" + ("6d" * len(scandata)), 16)).to_bytes(len(scandata), "little")
 
                 # With the masking above, we don't have to do the following,
                 # since 0xFF can't exist within the data.
