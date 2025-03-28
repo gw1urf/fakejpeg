@@ -1,16 +1,17 @@
+import sys
 import random
 import struct
 from enum import IntEnum
 
 class FakeJPEG:
-    # Given a bunch of JPEG files, this class builds a set of 
-    # templates which can later be used to generate fake jpeg 
+    # Given a bunch of JPEG files, this class builds a set of
+    # templates which can later be used to generate fake jpeg
     # files containing random pixel data.
     #
     # The general idea is that if you want to generate a large
     # number of things that look like JPEGs quickly, this lets
     # you do it. Feed the class a collection of real files, save
-    # the resulting object using e.g. pickle. Latee, you can 
+    # the resulting object using e.g. pickle. Later, you can
     # load the pickle and call the object's "generate" method
     # to get a sorta-kinda-JPEG file.
     #
@@ -44,7 +45,7 @@ class FakeJPEG:
         COM   = 0xFFFE
 
     # Hand it a list of jpegs and it'll build a set of templates.
-    # You'd probably do this as a one-off and store the resulting 
+    # You'd probably do this as a one-off and store the resulting
     # object using e.g. pickle.
     #
     # If you pass in a "logging" object, exceptions reading files
@@ -119,7 +120,7 @@ class FakeJPEG:
                         ):
                             # Yes, we want this chunk. Add it to the list.
                             chunks.append([marker, data[0:2+lenchunk]])
-                        data = data[2+lenchunk:]            
+                        data = data[2+lenchunk:]
                     if len(data)==0:
                         raise Exception("End of file reached without finding an end tag")
 
@@ -131,7 +132,7 @@ class FakeJPEG:
                 # silently skip the JPEG.
                 if logger is not None:
                     logger.warning(f"Failed to decode {jpg}: {e}")
-    
+
     # Generate a fake jpeg using our template data and
     # return it as bytes. If handed a random number generator
     # object, use that for generating the required random data.
@@ -162,9 +163,16 @@ class FakeJPEG:
                 # the length that the template JPEG contained in this chunk.
                 scandata = rng.randbytes(rng.randint(int(length), int(1.1*length)))
 
+                # This trick masks out alternate bits in scandata fairly quickly -
+                # much more quickly than the naiive list comprehension would.
+                # Idea from # https://stackoverflow.com/questions/46540337/
+                scandata = (int.from_bytes(scandata, byteorder="little", signed=False) & int("0x" + ("55" * len(scandata)), 16)).to_bytes(len(scandata), "little")
+
+                # With the masking above, we don't have to do the following,
+                # since 0xFF can't exist within the data.
                 # Any cases of 0xFF in the scan data need to be escaped by
                 # adding an 0x00 after them.
-                scandata = scandata.replace(b"\xff", b"\xff\x00")
+                # scandata = scandata.replace(b"\xff", b"\xff\x00")
 
                 # Add this chunk t our collection.
                 chunks.append(scandata)
