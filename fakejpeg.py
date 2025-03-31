@@ -100,6 +100,23 @@ class FakeJPEG:
                         # Store the preamble and the scan data length.
                         chunks.append([marker, [ data[0:lenhdr+2], pos-lenhdr-2 ]])
                         data = data[pos:]
+                    elif marker == FakeJPEG.markers.APP0:
+                        # The "JFIF" chunk - this could have thumbnail
+                        # data, so we want to remove that, if present.
+                        lenchunk, = struct.unpack(">H", data[2:4])
+                        jfif = data[0:2+lenchunk]
+                        data = data[2+lenchunk:]
+
+                        # Thumbnail?
+                        if len(jfif)  > 18:
+                            jbytes = list(jfif[0:18])
+                            jbytes[2] = 0
+                            jbytes[3] = 16
+                            jbytes[16] = 0
+                            jbytes[17] = 0
+                            jfif = bytes(jbytes)
+                            print(jfif)
+                        chunks.append([marker, jfif])
                     else:
                         # Other markers all have a length field, I think.
                         lenchunk, = struct.unpack(">H", data[2:4])
@@ -108,7 +125,7 @@ class FakeJPEG:
                         # data, which we won't want to put into generated
                         # fake JPEGs.
                         if marker not in (
-                            FakeJPEG.markers.APP0, FakeJPEG.markers.APP1,
+                            FakeJPEG.markers.APP1,
                             FakeJPEG.markers.APP2, FakeJPEG.markers.APP3,
                             FakeJPEG.markers.APP4, FakeJPEG.markers.APP5,
                             FakeJPEG.markers.APP6, FakeJPEG.markers.APP7,
