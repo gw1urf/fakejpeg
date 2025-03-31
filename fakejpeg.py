@@ -153,7 +153,7 @@ class FakeJPEG:
     # Generate a fake jpeg using our template data and
     # return it as bytes. If handed a random number generator
     # object, use that for generating the required random data.
-    def generate(self, rng=random):
+    def generate(self, comment=None, rng=random):
         # Choose a random template from our set.
         # This could raise an exception if we've not got
         # any templates. Allow that exception to propagate.
@@ -201,6 +201,13 @@ class FakeJPEG:
 
                 # Add this chunk to our collection.
                 chunks.append(scandata)
+
+        # If a comment was specified, shove it into the chunk array
+        # after the first two chunks.
+        if comment is not None:
+            comment = comment.encode("utf-8")
+            chunk = struct.pack(f">HH{len(comment)}s", 0xFFFE, len(comment)+2, comment)
+            chunks = chunks[0:2] + [chunk] + chunks[2:]
 
         # Finally, join all the genrated chunks and return the result.
         return b"".join(chunks)
