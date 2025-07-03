@@ -56,3 +56,28 @@ Once Apache has been restarted/reconfigured, you should be able to access
 any URL under the /fakejpeg-example/ and receive a fake JPEG file back,
 which your browser should hopefully render. It'll be a garish mess, but
 I hope it'll give those aggressive crawlers something to chew over.
+
+# Example images
+
+These were generated using "make_examples.py" and "jpeg_templates.pkl".
+
+![](images/example0.jpg)
+
+![](images/example1.jpg)
+
+![](images/example2.jpg)
+
+![](images/example3.jpg)
+
+![](images/example4.jpg)
+
+![](images/example5.jpg)
+
+![](images/example6.jpg)
+
+![](images/example7.jpg)
+
+![](images/example8.jpg)
+
+![](images/example9.jpg)
+
