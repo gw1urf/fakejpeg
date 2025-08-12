@@ -23,9 +23,18 @@ class FakeJPEG:
 
     # Enum type for the various JPEG chunk markers.
     class markers(IntEnum):
+        RST0  = 0xFFD0
+        RST1  = 0xFFD1
+        RST2  = 0xFFD2
+        RST3  = 0xFFD3
+        RST4  = 0xFFD4
+        RST5  = 0xFFD5
+        RST6  = 0xFFD6
+        RST7  = 0xFFD7
         SOI   = 0xFFD8
         EOI   = 0xFFD9
         SOS   = 0xFFDA
+        DRI   = 0xFFDD
         APP0  = 0xFFE0
         APP1  = 0xFFE1
         APP2  = 0xFFE2
@@ -95,6 +104,12 @@ class FakeJPEG:
                             # 0xFF in the stream is escaped with a following
                             # 0x00 if it's not an actual chunk marker.
                             if data[pos] == 0xFF and data[pos+1] != 0x00:
+                                # Skip over RSTm markers - these are allowed
+                                # in the SOS data.
+                                markerval = 0xFF00 | data[pos+1]
+                                if markerval >= FakeJPEG.markers.RST0 and markerval <= FakeJPEG.markers.RST7:
+                                    pos += 2
+                                    continue
                                 break
                             pos += 1
                         # Store the preamble and the scan data length.
@@ -123,7 +138,7 @@ class FakeJPEG:
 
                         # Drop APP* markers - these will contain e.g. exif
                         # data, which we won't want to put into generated
-                        # fake JPEGs.
+                        # fake JPEGs. Also lose COM and DRI.
                         if marker not in (
                             FakeJPEG.markers.APP1,
                             FakeJPEG.markers.APP2, FakeJPEG.markers.APP3,
@@ -133,7 +148,7 @@ class FakeJPEG:
                             FakeJPEG.markers.APP10, FakeJPEG.markers.APP11,
                             FakeJPEG.markers.APP12, FakeJPEG.markers.APP13,
                             FakeJPEG.markers.APP14, FakeJPEG.markers.APP15,
-                            FakeJPEG.markers.COM
+                            FakeJPEG.markers.COM, FakeJPEG.markers.DRI
                         ):
                             # Yes, we want this chunk. Add it to the list.
                             chunks.append([marker, data[0:2+lenchunk]])
