@@ -69,7 +69,7 @@ class FakeJPEG:
 
                     # Check it's valid. If not, we'll skip this jpeg.
                     if (marker & 0xFF00) != 0xFF00:
-                        raise Exception("Bad marker {marker:04x} encountered")
+                        raise Exception(f"Bad marker {marker:04x} encountered")
 
                     if marker == FakeJPEG.markers.SOI:
                         # Start of image - no "length" field.
